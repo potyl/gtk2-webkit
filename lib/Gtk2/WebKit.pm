@@ -12,8 +12,15 @@ sub dl_load_flags { 0x01 }
 __PACKAGE__->bootstrap($VERSION);
 
 if (__PACKAGE__->HAS_GLIB_SOUP) {
-	require Glib::Soup;
-	Glib::Soup->import();
+
+	require Glib::Object::Introspection;
+	Glib::Object::Introspection->import();
+
+	Glib::Object::Introspection->setup (
+		basename => 'Soup',
+		version => '2.4',
+		package => 'Glib::Soup'
+	);
 }
 
 

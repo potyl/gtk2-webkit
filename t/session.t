@@ -7,7 +7,7 @@ use Gtk2::WebKit;
 
 if (Gtk2::WebKit->can("get_default_session")) {
 	my $session = Gtk2::WebKit->get_default_session;
-	isa_ok($session, 'Glib::SoupSession');
+	isa_ok($session, 'Glib::Soup::Session');
 }
 else {
 	SKIP: {

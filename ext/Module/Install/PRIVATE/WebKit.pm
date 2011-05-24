@@ -23,27 +23,38 @@ sub webkit {
     eval {
         %pkgconfig = ExtUtils::PkgConfig->find('webkit-1.0');
     };
+    my @typemaps = ('maps');
 
     if (my $error = $@) {
         print STDERR $error;
         return;
     }
 
-    Gtk2::CodeGen->parse_maps('webkit');
-    Gtk2::CodeGen->write_boot(ignore => qr/^Gtk2::WebKit$/);
-
     our @xs_files = <xs/*.xs>;
 
-    my @extra_dependencies = 'Gtk2';
+    my @extra_dependencies;
     my $extra_cflags = "";
     eval {
-        require Glib::Soup;
-        push @extra_dependencies, 'Glib::Soup';
+
+        require Glib::Object::Introspection;
+        Glib::Object::Introspection->import();
+
+        Glib::Object::Introspection->setup (
+            basename => 'Soup',
+            version => '2.4',
+        package => 'Glib::Soup'
+        );
+
+        #push @extra_dependencies, 'Glib::Soup';
         $extra_cflags = " -DGLIB_SOUP_PERL";
+				push @typemaps, 'maps-soup';
         1;
     } or do {
         my $error = $@;
     };
+
+    Gtk2::CodeGen->parse_maps('webkit', input => \@typemaps);
+    Gtk2::CodeGen->write_boot(ignore => qr/^Gtk2::WebKit$/);
 
     our $webkit = ExtUtils::Depends->new('Gtk2::WebKit', 'Gtk2', @extra_dependencies);
     $webkit->set_inc($pkgconfig{cflags} . ($Module::Install::AUTHOR ? ' -Wall -Werror' : '') . $extra_cflags);
